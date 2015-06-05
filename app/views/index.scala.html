@@ -1,0 +1,58 @@
+@(message: String)
+
+@main("Welcome to Play") {
+
+    <!--@play20.welcome(message)-->
+
+}
+
+<html>
+  <head>
+  </head>
+  <body>
+  	<p id="pageTitle">Test Page</p>
+    <div id="bookCollectionApp">
+    	<select id="booksShownSelect">
+    	  <option value="10">Show 10 entries</option>
+    	  <option value="25" selected>Show 25 entries</option>
+    	  <option value="50">Show 50 entries</option>
+    	  <option value="100">Show 100 entries</option>
+    	</select>
+      <table id="bookTable" border="1" style="width:100%">
+        <thead>
+          <tr>
+          	<th>Bookname<img class="sortImg" id="booknameImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
+          	<th>Author<img class="sortImg" id="authorImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
+          	<th>meta<img class="sortImg" id="metaImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
+          	<th>Options</th>
+          </tr>
+        </thead>
+        <tbody id="bookTableBody">
+        </tbody>
+      </table>
+      <p>
+	    <table>
+	      <tr>
+	        <td><button id="previousPageBtn">Prev.</button></td>
+	        <td><button id="nextPageBtn">Next</button></td>
+	      </tr>
+	    </table>
+      </p>
+      <p id="numberIndicator">Showing</p>
+    </div>
+    <!-- Images -->
+    <script type="image/png" href="@routes.Assets.versioned("images/sort_asc.png")"></script>
+    <script type="image/png" href="@routes.Assets.versioned("images/sort_both.png")"></script>
+    <script type="image/png" href="@routes.Assets.versioned("images/sort_desc.png")"></script>
+    <!-- Javascript dependencies -->
+    <script type="text/javascript" src="@routes.Assets.versioned("javascripts/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.versioned("javascripts/underscore.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.versioned("javascripts/backbone.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.versioned("javascripts/books.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.versioned("javascripts/main.js")"></script>
+    <!-- Templates -->
+    <script type="text/template" id="row-template">
+  	  <td><%- title %></td><td><%- author %></td><td><%- meta %></td><td></td>
+    </script>
+  </body>
+</html>
