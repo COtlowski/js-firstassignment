@@ -137,6 +137,7 @@ $(function(){
 		},
 
 		changeSortOrder: function(htmlElement){
+			this.pageNum = 0;
 			if(htmlElement.attr("src") === "/assets/images/sort_asc.png"){
 				htmlElement.attr("src", "/assets/images/sort_desc.png");
 				this.collection.sortDirection = -1;
