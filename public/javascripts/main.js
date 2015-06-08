@@ -5,7 +5,19 @@ $(function(){
 			title: "empty-title",
 			author: "no-author",
 			meta: 99999
-		}
+		},
+
+		validate: function(attrs) {
+			if(!attrs.title) {
+				return "Please enter a title for the book";
+			}
+			if(!attrs.author) {
+				return "Please enter an author for the book";
+			}
+			if($.isNumeric(attrs.meta)){
+				return "The meta number is anything but";
+			}
+		},
 	});
 
 	var BookModelCollection = Backbone.Collection.extend({
@@ -13,6 +25,8 @@ $(function(){
 
 		sortKey: 'id',
 		sortDirection: 1,
+
+		localStorage: new Backbone.LocalStorage("book-list-storage"),
 
 		comparator: function(a, b){
 			var a = a.get(this.sortKey);
@@ -33,24 +47,39 @@ $(function(){
 		},
 
 		sortByField: function(field){
+			// Set the column to sort and then sort
 			this.sortKey = field;
 			this.sort();
-		}
+		},
 	});
 
-	var BookModelView = Backbone.View.extend({
+	var BookView = Backbone.View.extend({
 		tagName: "tr",
 
 		template: _.template($("#row-template").html()),
 
+		events: {
+			"click div.destroy" : "clear"
+		},
+
 		initialize: function(){
-			_.bindAll(this, "render");
+			_.bindAll(this, "render", "clear", "test");
+
+			this.listenTo(this.model, "destroy", this.remove);
 		},
 
 		render: function(){
+			// Render the row based on the html template and the JSON data
 			$(this.el).html(this.template(this.model.toJSON()));
 			return this;
-		}
+		},
+
+		clear: function(){
+			// Destroy the model
+			this.model.destroy();
+		},
+
+		test: function() {console.log("deleted " + this.model)},
 	});
 
 	var AppView = Backbone.View.extend({
@@ -61,9 +90,10 @@ $(function(){
 			"change #booksShownSelect": "onBooksShownChange",
 			"click #previousPageBtn": "onPrevPageClick",
 			"click #nextPageBtn": "onNextPageClick",
-			"click #booknameImg": "onBooknameImgClick",
-			"click #authorImg": "onAuthorImgClick",
-			"click #metaImg": "onMetaImgClick"
+			"click #booknameHead": "onBooknameImgClick",
+			"click #authorHead": "onAuthorImgClick",
+			"click #metaHead": "onMetaImgClick",
+			"click #bookEntryBtn": "onBookEntryClick",
 		},
 
 		initialize: function() {
@@ -80,7 +110,12 @@ $(function(){
 
 			// Get the collection of books as a collection modeled after BookModel
 			this.collection = new BookModelCollection(books);
+			this.counter = this.collection.last().id;
+
+			// Set up listeners for events
 			this.listenTo(this.collection, "sort", this.render);
+			this.listenTo(this.collection, "remove", this.render);
+
 			this.render();
 		},
 
@@ -94,6 +129,11 @@ $(function(){
 				this.maxPages = Math.floor(this.collection.size() / this.numBooksSelect.val());
 				if(this.collection.size() % this.numBooksSelect.val() === 0) {
 					this.maxPages--;
+				}
+
+				// Check if the current page is over the maximum pages
+				if(this.pageNum > this.maxPages){
+					this.pageNum = this.maxPages;
 				}
 
 				// Disable the previous page buttons when we are on the first page
@@ -126,36 +166,43 @@ $(function(){
 		},
 
 		appendBook: function(book){
-			var bookView = new BookModelView({
+			// Create a new BookView based on the model
+			var bookView = new BookView({
 				model: book
 			});
+			// Append the BookView render to the table
 			this.bookTable.append(bookView.render().el);
 		},
 
-		resetSortingImg: function(htmlElement){
-			$(".sortImg").not(htmlElement).attr("src", "/assets/images/sort_both.png");
+		resetSortingImg: function(selectedColumn){
+			// With the exception of the selected sort, reset the other sorting icons
+			$(".sortImg").not(selectedColumn).attr("src", "/assets/images/sort_both.png");
 		},
 
-		changeSortOrder: function(htmlElement){
+		changeSortOrder: function(selectedColumn){
+			// Reset the page to the first one
 			this.pageNum = 0;
-			if(htmlElement.attr("src") === "/assets/images/sort_asc.png"){
-				htmlElement.attr("src", "/assets/images/sort_desc.png");
+			// Change the image based on columns sorting image
+			if(selectedColumn.attr("src") == "/assets/images/sort_asc.png"){
+				selectedColumn.attr("src", "/assets/images/sort_desc.png");
 				this.collection.sortDirection = -1;
 			} else {
-				htmlElement.attr("src", "/assets/images/sort_asc.png");
+				selectedColumn.attr("src", "/assets/images/sort_asc.png");
 				this.collection.sortDirection = 1;
 			}
 		},
 
 		// Putting event methods down here separate from the other methods
 		onBooksShownChange: function(){
+			// Reset to first page and re-render
 			this.pageNum = 0;
-			console.log("Number of books shown is " + this.numBooksSelect.val());
 			this.render();
 		},
 
 		onPrevPageClick: function(){
+			// Check if we are not on the first page
 			if(this.pageNum > 0){
+				// Decreament the page
 				this.pageNum--;
 				console.log("Going to page " + this.pageNum);
 				this.render();
@@ -163,7 +210,9 @@ $(function(){
 		},
 
 		onNextPageClick: function(){
+			// Check if we are not on the last page
 			if(this.pageNum < this.maxPages){
+				// Increament the page
 				this.pageNum++;
 				console.log("Going to page " + this.pageNum);
 				this.render();
@@ -192,7 +241,24 @@ $(function(){
 			this.collection.sortByField("meta");
 			console.log(this.collection.sort);
 			this.render();
-		}
+		},
+
+		onBookEntryClick: function(){
+			this.counter++;
+			var newBook = new BookModel();
+			newBook.set({
+				id: this.counter,
+				title: $("#titleBox").val(),
+				author: $("#authorBox").val(),
+				meta: $("#metaBox").val()
+			});
+			console.log("Entering Book: " + newBook.get("title") + " by " + 
+				newBook.get("author") + ": " + newBook.get("meta"));
+			this.collection.add(newBook);
+			this.render();
+		},
+
+		test: function() {console.log("help")},
 	});
 
 	var app = new AppView;

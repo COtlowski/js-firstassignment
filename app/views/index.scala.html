@@ -10,8 +10,23 @@
   <head>
   </head>
   <body>
-  	<p id="pageTitle">Test Page</p>
+  	<p id="pageTitle">Library Page</p>
     <div id="bookCollectionApp">
+      <table>
+        <tr>
+          <td>Title Entry: </td>
+          <td><input type="type" id="titleBox"></input></td>
+        </tr>
+        <tr>
+          <td>Author Entry: </td>
+          <td><input type="type" id="authorBox"></input></td>
+        </tr>
+        <tr>
+          <td>Meta Entry: </td>
+          <td><input type="type" id="metaBox"></input></td>
+        </tr>
+        <td><button id="bookEntryBtn">Enter Book</button></td>
+      </table>
     	<select id="booksShownSelect">
     	  <option value="10">Show 10 entries</option>
     	  <option value="25" selected>Show 25 entries</option>
@@ -21,9 +36,9 @@
       <table id="bookTable" border="1" style="width:100%">
         <thead>
           <tr>
-          	<th>Bookname<img class="sortImg" id="booknameImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
-          	<th>Author<img class="sortImg" id="authorImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
-          	<th>meta<img class="sortImg" id="metaImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
+          	<th id="booknameHead">Bookname<img class="sortImg" id="booknameImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
+          	<th id="authorHead">Author<img class="sortImg" id="authorImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
+          	<th id="metaHead">meta<img class="sortImg" id="metaImg" src="@routes.Assets.versioned("images/sort_both.png")"></th>
           	<th>Options</th>
           </tr>
         </thead>
@@ -48,11 +63,12 @@
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/underscore.js")"></script>
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/backbone.js")"></script>
+    <script type="text/javascript" src="http://backbonejs.org/examples/backbone.localStorage.js"></script>
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/books.js")"></script>
     <script type="text/javascript" src="@routes.Assets.versioned("javascripts/main.js")"></script>
     <!-- Templates -->
     <script type="text/template" id="row-template">
-  	  <td><%- title %></td><td><%- author %></td><td><%- meta %></td><td></td>
+  	  <td><%- title %></td><td><%- author %></td><td><%- meta %></td><td><div class="destroy">X</div></td>
     </script>
   </body>
 </html>
