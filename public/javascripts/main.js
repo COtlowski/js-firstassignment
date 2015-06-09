@@ -1,23 +1,12 @@
 $(function(){
 	var BookModel = Backbone.Model.extend({
+		// Set the defaults for the model
 		defaults: {
 			id: 0,
-			title: "empty-title",
+			title: "",
 			author: "no-author",
 			meta: 99999
-		},
-
-		validate: function(attrs) {
-			if(!attrs.title) {
-				return "Please enter a title for the book";
-			}
-			if(!attrs.author) {
-				return "Please enter an author for the book";
-			}
-			if($.isNumeric(attrs.meta)){
-				return "The meta number is anything but";
-			}
-		},
+		}
 	});
 
 	var BookModelCollection = Backbone.Collection.extend({
@@ -97,7 +86,7 @@ $(function(){
 		},
 
 		initialize: function() {
-			_.bindAll(this, "render");
+			_.bindAll(this, "render", "clearEntryFields");
 
 			// Append elements in the HTML for later use
 			this.numBooksSelect = $("#booksShownSelect");
@@ -192,6 +181,33 @@ $(function(){
 			}
 		},
 
+		clearEntryFields: function() {
+			console.log("Cleared book entry fields");
+			$("#titleBox").val("");
+			$("#authorBox").val("");
+			$("#metaBox").val("");
+		},
+
+		entryValidation: function(newBook) {
+			var errorString = "";
+			if(newBook.get("title") == ""){
+				errorString += "-\tPlease enter a title\n";
+			}
+			if(newBook.get("author") == ""){
+				errorString += "-\tPlease enter the author's name\n";
+			}
+			if(_.isNaN(parseInt(newBook.get("meta")))){
+				errorString += "-\tPlease enter a meta number\n";
+			}
+
+			if(errorString == ""){
+				return true;
+			} else {
+				alert("The entry has issues\n\n" + errorString);
+				return false;
+			}
+		},
+
 		// Putting event methods down here separate from the other methods
 		onBooksShownChange: function(){
 			// Reset to first page and re-render
@@ -231,7 +247,6 @@ $(function(){
 			this.resetSortingImg($("#authorImg"));
 			this.changeSortOrder($("#authorImg"));
 			this.collection.sortByField("author");
-			this.render();
 		},
 
 		onMetaImgClick: function(){
@@ -239,23 +254,23 @@ $(function(){
 			this.resetSortingImg($("#metaImg"));
 			this.changeSortOrder($("#metaImg"));
 			this.collection.sortByField("meta");
-			console.log(this.collection.sort);
-			this.render();
 		},
 
 		onBookEntryClick: function(){
 			this.counter++;
 			var newBook = new BookModel();
 			newBook.set({
-				id: this.counter,
 				title: $("#titleBox").val(),
 				author: $("#authorBox").val(),
 				meta: $("#metaBox").val()
 			});
-			console.log("Entering Book: " + newBook.get("title") + " by " + 
-				newBook.get("author") + ": " + newBook.get("meta"));
-			this.collection.add(newBook);
-			this.render();
+			if(this.entryValidation(newBook)){
+				console.log("Entering Book: " + newBook.get("title") + " by " + 
+					newBook.get("author") + ": " + newBook.get("meta"));
+				this.collection.add(newBook);
+				this.clearEntryFields();
+				this.render();
+			}
 		},
 
 		test: function() {console.log("help")},
