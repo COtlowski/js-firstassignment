@@ -39,19 +39,31 @@ object BookController extends Controller {
     *
     *
      */
-    // def update = Action(parse.json) { request =>
-    //     request.body.validate[Book].fold(
-    //         )
+    def update = Action(parse.json) { request =>
+        request.body.validate[Book].fold(
+            errors => {
+                BadRequest("Json request is not valid")
+            },
+            book => {
+                Book.update(book).map {
+                    book => Ok(Json.toJson(book))
+                } getOrElse {
+                    NotFound
+                }
+            }
+        )
         
-    // }
+    }
 
     /** 
     *
     *
      */
-    // def delete(id: Long) = Action {
-    //     Book.delete(id)
-
-    // }
+    def delete(id: Long) = Action { 
+        if(Book.delete(id))
+            Ok(Json.toJson(1))
+        else
+            NotFound
+    }
 
 }
