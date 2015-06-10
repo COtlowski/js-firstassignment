@@ -4,10 +4,31 @@ import anorm._
 import anorm.SqlParser._
 import play.api.Play.current
 import play.api.db.DB
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{__, Reads}
+
 
 case class Book(id: Option[Long], title: String, author: String, meta: Int)
 
 object Book {
+
+    implicit val writesBook = Writes[Book] {
+        case Book(id, title, author, price) =>
+            Json.obj(
+                "id" -> id,
+                "title" -> title,
+                "author" -> author,
+                "meta" -> price
+            )
+    }
+
+    implicit val readsBook: Reads[Book] = (
+        (JsPath \ "id").read[Option[Long]] and
+        (JsPath \ "title").read[String] and
+        (JsPath \ "author").read[String] and
+        (JsPath \ "meta").read[Int]
+    )(Book.apply _)
 
     val parser: RowParser[Book] = {
         get[Option[Long]]("books.id") ~
@@ -32,7 +53,8 @@ object Book {
      */
     def read(id: Long): Option[Book] = {
         DB.withConnection { implicit c => 
-            SQL("SELECT * FROM books WHERE id = " + id).as(parser.singleOpt)
+            SQL("SELECT * FROM books WHERE id = {id}")
+                .on("id" -> id).as(parser.singleOpt)
         }
     }
 
@@ -43,7 +65,6 @@ object Book {
      */
      def create(book: Book): Option[Book] = {
         DB.withConnection { implicit c =>
-            val result: Option[Book] = 
             SQL("INSERT INTO books(title, author, meta) values ({title}, {author}, {meta})")
             .on(
                 "title" -> book.title,
@@ -51,8 +72,6 @@ object Book {
                 "meta" -> book.meta
                 ).executeInsert()
             .map(id => book.copy(id = Some(id)))
-
-            return result
         }
     }
 
@@ -63,14 +82,15 @@ object Book {
      */
     def update(book: Book): Option[Book] = {
         DB.withConnection { implicit c =>
-            val updateSuccessful: Boolean = SQL("UPDATE books SET title={title}, author={author}, meta={meta} " + 
-                "WHERE id={id}").on("title" -> book.title, "author" -> book.author,
-                "meta" -> book.meta, "id" -> book.id).executeUpdate() > 0
-            
-            if(updateSuccessful)
-                return Some(book)
-            else
-                return None
+            SQL("""UPDATE books 
+                SET title={title}, author={author}, meta={meta} 
+                WHERE id={id}""")
+                .on("title" -> book.title, "author" -> book.author,
+                "meta" -> book.meta, "id" -> book.id)
+                .executeUpdate() match {
+                    case 0 => None
+                    case _ => Some(book)
+                }
         }
     }
 

@@ -31,8 +31,9 @@ object BookSpec extends Specification {
 
         tag("read")
         "return None for a book that does not exist" in new WithSQL("test/snapshots/books.sql"){
-            val book: Option[Book] = Book.read(9L)
+            val book: Option[Book] = Book.read(10L)
             book must beNone
+            book.map(_.title) must beNone
         }
 
         tag("create")

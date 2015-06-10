@@ -4,6 +4,9 @@
 
 # Home page
 GET     /                           controllers.Application.index
+GET     /books/list                 controllers.BookController.list
+GET     /books/read/:id             controllers.BookController.read(id: Long)
+GET     /books/create/:book         controllers.BookController.create(book: )
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
