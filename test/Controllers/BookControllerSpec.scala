@@ -19,9 +19,9 @@ object BookControllerSpec extends Specification {
             val request = FakeRequest(GET, "/books/list")
             val Some(result) = route(request)
             status(result) must equalTo(OK)
-            contentAsJson(result).as[List[Book]] must equalTo(expectedBooks)
-            contentAsJson(result).as[List[Book]]
-                .flatMap(_.id) must contain(exactly(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L))
+            val jsonResult = contentAsJson(result).as[List[Book]]
+            jsonResult must equalTo(expectedBooks)
+            jsonResult.flatMap(_.id) must contain(exactly(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L))
         }
 
         tag("list")
@@ -44,7 +44,7 @@ object BookControllerSpec extends Specification {
 
         tag("read")
         "don't find a book with an id" in new WithSQL("test/snapshots/books.sql"){
-            val request = FakeRequest(GET, "/books/read/10")
+            val request = FakeRequest(GET, "/books/read/20")
             val Some(result) = route(request)
             status(result) must equalTo(OK)
             contentAsJson(result).as[Option[Book]] must beNone
@@ -57,7 +57,7 @@ object BookControllerSpec extends Specification {
                 author = "John Steinbeck",
                 meta = 90990
             )
-
+                       
             val request = FakeRequest(POST, "/books/create").withJsonBody(
                 Json.toJson(newBook)
             )

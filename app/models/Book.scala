@@ -8,7 +8,6 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{__, Reads}
 
-
 case class Book(id: Option[Long], title: String, author: String, meta: Int)
 
 object Book {
@@ -24,7 +23,7 @@ object Book {
     }
 
     implicit val readsBook: Reads[Book] = (
-        (JsPath \ "id").read[Option[Long]] and
+        (JsPath \ "id").readNullable[Long] and
         (JsPath \ "title").read[String] and
         (JsPath \ "author").read[String] and
         (JsPath \ "meta").read[Int]

@@ -1,21 +1,43 @@
 $(function(){
 	var BookModel = Backbone.Model.extend({
 		// Set the defaults for the model
-		defaults: {
-			id: 0,
-			title: "",
-			author: "no-author",
-			meta: 99999
-		}
+		// defaults: {
+		// 	id: 0,
+		// 	title: "",
+		// 	author: "no-author",
+		// 	meta: 99999
+		// },
+
+		sync: function(method, model, options) {
+		    options = options || {};
+		    options.url = model.methodToURL(method.toLowerCase());
+
+		    Backbone.sync(method, model, options);
+		},
+
+		methodToURL: function(method) {
+			switch(method) {
+				case 'create':
+					return '/books/create'; 
+					break;
+				case 'update':
+					return '/books/update';
+					break;
+				case 'delete':
+					return '/books/delete/' + this.get("id");
+					break;
+			}
+		},
 	});
 
 	var BookModelCollection = Backbone.Collection.extend({
 		model: BookModel,
+		url: "/books/list",
 
 		sortKey: 'id',
 		sortDirection: 1,
 
-		localStorage: new Backbone.LocalStorage("book-list-storage"),
+		//localStorage: new Backbone.LocalStorage("book-list-storage"),
 
 		comparator: function(a, b){
 			var a = a.get(this.sortKey);
@@ -55,6 +77,7 @@ $(function(){
 			_.bindAll(this, "render", "clear", "test");
 
 			this.listenTo(this.model, "destroy", this.remove);
+			this.listenTo(this.model, "sync", this.render);
 		},
 
 		render: function(){
@@ -68,7 +91,7 @@ $(function(){
 			this.model.destroy();
 		},
 
-		test: function() {console.log("deleted " + this.model)},
+		test: function() {console.log("deleted " + this.model)}
 	});
 
 	var AppView = Backbone.View.extend({
@@ -98,8 +121,9 @@ $(function(){
 			this.maxPages = 0;
 
 			// Get the collection of books as a collection modeled after BookModel
-			this.collection = new BookModelCollection(books);
-			this.counter = this.collection.last().id;
+			this.collection = new BookModelCollection();
+			this.collection.fetch();
+			//this.counter = this.collection.last().id;
 
 			// Set up listeners for events
 			this.listenTo(this.collection, "sort", this.render);
@@ -190,17 +214,17 @@ $(function(){
 
 		entryValidation: function(newBook) {
 			var errorString = "";
-			if(newBook.get("title") == ""){
+			if(newBook.get("title") === ""){
 				errorString += "-\tPlease enter a title\n";
 			}
-			if(newBook.get("author") == ""){
+			if(newBook.get("author") === ""){
 				errorString += "-\tPlease enter the author's name\n";
 			}
 			if(_.isNaN(parseInt(newBook.get("meta")))){
 				errorString += "-\tPlease enter a meta number\n";
 			}
 
-			if(errorString == ""){
+			if(errorString === ""){
 				return true;
 			} else {
 				alert("The entry has issues\n\n" + errorString);
@@ -262,13 +286,16 @@ $(function(){
 			newBook.set({
 				title: $("#titleBox").val(),
 				author: $("#authorBox").val(),
-				meta: $("#metaBox").val()
+				meta: parseInt($("#metaBox").val())
 			});
 			if(this.entryValidation(newBook)){
 				console.log("Entering Book: " + newBook.get("title") + " by " + 
 					newBook.get("author") + ": " + newBook.get("meta"));
-				this.collection.add(newBook);
+
+				this.collection.create(newBook);
+
 				this.clearEntryFields();
+				
 				this.render();
 			}
 		},
