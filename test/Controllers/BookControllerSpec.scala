@@ -57,7 +57,7 @@ object BookControllerSpec extends Specification {
                 author = "John Steinbeck",
                 meta = 90990
             )
-                       
+
             val request = FakeRequest(POST, "/books/create").withJsonBody(
                 Json.toJson(newBook)
             )
@@ -76,7 +76,7 @@ object BookControllerSpec extends Specification {
                 meta = 90990
             )
 
-            val request = FakeRequest(GET, "/books/update").withJsonBody(
+            val request = FakeRequest(PUT, "/books/update").withJsonBody(
                 Json.toJson(book)
             )
             val Some(result) = route(request)
@@ -92,7 +92,7 @@ object BookControllerSpec extends Specification {
                 author = "John Steinbeck",
                 meta = 90990
             )
-            val request = FakeRequest(GET, "/books/update").withJsonBody(
+            val request = FakeRequest(PUT, "/books/update").withJsonBody(
                 Json.toJson(book)
             )
             val Some(result) = route(request)

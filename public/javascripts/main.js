@@ -1,13 +1,5 @@
 $(function(){
 	var BookModel = Backbone.Model.extend({
-		// Set the defaults for the model
-		// defaults: {
-		// 	id: 0,
-		// 	title: "",
-		// 	author: "no-author",
-		// 	meta: 99999
-		// },
-
 		sync: function(method, model, options) {
 		    options = options || {};
 		    options.url = model.methodToURL(method.toLowerCase());
@@ -44,10 +36,11 @@ $(function(){
 			var b = b.get(this.sortKey);
 
 			// Don't sort if both values are the same
-			if(a == b) return 0;
+			if(a === b) 
+				return 0;
 
 			// When the sort direction is ascending
-			if(this.sortDirection == 1){
+			if(this.sortDirection === 1){
 				// Sort a before b
 				return a > b ? 1 : -1;
 			}
@@ -67,10 +60,21 @@ $(function(){
 	var BookView = Backbone.View.extend({
 		tagName: "tr",
 
-		template: _.template($("#row-template").html()),
+		editing: false,
+
+		template: _.template(
+			'<td><div class="view"><%- title %></div><input class="edit" type="text" value="<%- title %>" hidden/></td>' +
+			'<td><div class="view"><%- author %></div><input class="edit" type="text" value="<%- author %>" hidden/></td>' +
+			'<td><div class="view"><%- meta %></div><input class="edit" type="text" value="<%- meta %>" hidden/></td>' + 
+			'<td>' +
+				'<img class="destroyButton" id="deleteIcon" width="16" height="16" src="/assets/images/x-icon.png")"></img>' +
+				'<img class="editButton" id="editIcon" width="16" height="16" src="/assets/images/pencil.png")"></img>' +
+			'</td>'
+		),
 
 		events: {
-			"click div.destroy" : "clear"
+			"click img.destroyButton" : "clear",
+			"click img.editButton": "edit"
 		},
 
 		initialize: function(){
@@ -83,12 +87,65 @@ $(function(){
 		render: function(){
 			// Render the row based on the html template and the JSON data
 			$(this.el).html(this.template(this.model.toJSON()));
+			this.input = this.$('.edit');
 			return this;
 		},
 
 		clear: function(){
 			// Destroy the model
 			this.model.destroy();
+		},
+
+		entryValidation: function(newBook) {
+			var errorString = "";
+			if(newBook.get("title") === ""){
+				errorString += "-\tPlease enter a title\n";
+			}
+			if(newBook.get("author") === ""){
+				errorString += "-\tPlease enter the author's name\n";
+			}
+			if(_.isNaN(parseInt(newBook.get("meta")))){
+				errorString += "-\tPlease enter a meta number\n";
+			}
+
+			if(errorString === ""){
+				return true;
+			} else {
+				alert("The entry has issues\n\n" + errorString);
+				return false;
+			}
+		},
+
+		edit: function(){
+			console.log("Editing " + this.model.id);
+
+			if(this.editing){
+				this.editing = !this.editing;
+				console.log(this.editing);
+				$(this.el).addClass("editing");
+				this.$(".view").hide();
+				this.$(".edit").show();
+			} else {
+				var newBook = new BookModel({
+					id: this.model.id,
+					title: this.input[0].value,
+					author: this.input[1].value,
+					meta: parseInt(this.input[2].value)
+				});
+				if(this.entryValidation(newBook)){
+					this.editing = !this.editing;
+					console.log(this.editing);
+					$(this.el).removeClass("editing");
+					this.$(".view").show();
+					this.$(".edit").hide();
+					this.model.save(newBook);
+					this.render();
+				}
+			}
+		},
+
+		close: function(){
+			$(this.el).removeClass("editing");
 		},
 
 		test: function() {console.log("deleted " + this.model)}

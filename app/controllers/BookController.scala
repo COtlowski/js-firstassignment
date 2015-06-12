@@ -27,11 +27,9 @@ object BookController extends Controller {
     * @return The result of creating a new book
      */
     def create = Action(parse.json) { request =>
-        val body = request.body
-        Logger.info(s"Body=$body")
         request.body.validate[Book].fold(
             errors => {
-                BadRequest("Json request is not valid")
+                BadRequest(Json.obj("message" -> "Json request is not valid"))
             },
             book => {
                 Ok(Json.toJson(Book.create(book)))
@@ -46,13 +44,13 @@ object BookController extends Controller {
     def update = Action(parse.json) { request =>
         request.body.validate[Book].fold(
             errors => {
-                BadRequest("Json request is not valid")
+                BadRequest(Json.obj("message" -> "Json request is not valid"))
             },
             book => {
                 Book.update(book).map {
                     book => Ok(Json.toJson(book))
                 } getOrElse {
-                    NotFound
+                    NotFound(Json.obj("message" -> "The book was not found"))
                 }
             }
         )
@@ -66,7 +64,7 @@ object BookController extends Controller {
         if(Book.delete(id))
             Ok(Json.toJson(1))
         else
-            NotFound
+            NotFound(Json.obj("message" -> "The book was not found"))
     }
 
 }
